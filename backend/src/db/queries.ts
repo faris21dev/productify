@@ -13,15 +13,26 @@ export const getUserById = async (id: string) => {
 };
 
 export const updateUser = async (id: string, data: Partial<newUser>) => {
+
     const [user] = await db.update(users).set(data).where(eq(users.id, id)).returning();
     return user;
 };
 
 export const upsertUser = async (data: newUser) => {
-    const existingUser = await getUserById(data.id);
-
-    if (existingUser) return await updateUser(data.id, data);
-    return await createUser(data);
+    const [user] = await db
+        .insert(users)
+        .values(data)
+        .onConflictDoUpdate({
+            target: users.id,
+            set: {
+                email: data.email,
+                name: data.name,
+                imageUrl: data.imageUrl,
+                updatedAt: new Date(),
+            },
+        })
+        .returning();
+    return user;
 }
 
 // Products Queries
@@ -58,12 +69,22 @@ export const getProductsByUserId = async (userId: string) => {
     })
 };
 
-export const updateProduct = async (id: string, data: Partial<newComment>) => {
+export const updateProduct = async (id: string, data: Partial<newProduct>) => {
+    const existingProduct = await db.query.products.findFirst({where: eq(products.id, id)});
+    if (!existingProduct) {
+        throw new Error('Product not found');
+    }
+
     const [product] = await db.update(products).set(data).where(eq(products.id, id)).returning();
     return product;
 };
 
 export const deleteProduct = async (id: string) => {
+    const existingProduct = await db.query.products.findFirst({where: eq(products.id, id)});
+    if (!existingProduct) {
+        throw new Error('Product not found');
+    }
+
     const [product] = await db.delete(products).where(eq(products.id, id)).returning();
     return product;
 };
@@ -75,6 +96,11 @@ export const createComment = async (data: newComment) => {
 };
 
 export const deleteComment = async (id: string) => {
+    const existingComment = await db.query.comments.findFirst({where: eq(comments.id, id)});
+    if (!existingComment) {
+        throw new Error('Comment not found');
+    }
+
     const [comment] = await db.delete(comments).where(eq(comments.id, id)).returning();
     return comment;
 };
