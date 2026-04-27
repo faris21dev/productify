@@ -52,8 +52,8 @@ export const commentsRelations = relations(comments, ({one}) => ({
 export type User = typeof users.$inferSelect;
 export type newUser = typeof users.$inferInsert;
 
-export type Product = typeof users.$inferSelect;
-export type newProduct = typeof users.$inferInsert;
+export type Product = typeof products.$inferSelect;
+export type newProduct = typeof products.$inferInsert;
 
-export type Comment = typeof users.$inferSelect;
-export type newComment = typeof users.$inferInsert;
+export type Comment = typeof comments.$inferSelect;
+export type newComment = typeof comments.$inferInsert;
